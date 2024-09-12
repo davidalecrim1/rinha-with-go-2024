@@ -20,7 +20,7 @@ type Client struct {
 	UpdatedAt time.Time
 }
 
-func NewClient(id int, limit int, balance int) *Client {
+func NewClient(id int, limit int, balance int, updatedAt time.Time) *Client {
 	return &Client{
 		ID:      id,
 		Limit:   limit,
@@ -102,10 +102,10 @@ type ClientRepository interface {
 	Begin(ctx context.Context) error
 	Commit(ctx context.Context) error
 	Rollback(ctx context.Context) error
+	GetClientTransactions(ctx context.Context, clientID int) (*[]Transaction, error)
 }
 
-func (s *ClientService) CreateTransaction(t *Transaction) (*Client, error) {
-	ctx := context.Background()
+func (s *ClientService) CreateTransaction(ctx context.Context, t *Transaction) (*Client, error) {
 	var err error
 
 	defer func() {
@@ -135,7 +135,7 @@ func (s *ClientService) CreateTransaction(t *Transaction) (*Client, error) {
 		return nil, err
 	}
 
-	client, err := s.repo.GetClientBalance(context.Background(), t.ClientID)
+	client, err := s.repo.GetClientBalance(ctx, t.ClientID)
 	if err != nil {
 		return nil, err
 	}
@@ -143,6 +143,16 @@ func (s *ClientService) CreateTransaction(t *Transaction) (*Client, error) {
 	return client, nil
 }
 
-func (s *ClientService) GetTransactions(clientId int) (*[]Transaction, error) {
-	return nil, nil // TODO
+func (s *ClientService) GetStatement(ctx context.Context, clientId int) (*Client, *[]Transaction, error) {
+	client, err := s.repo.GetClientBalance(ctx, clientId)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	transactions, err := s.repo.GetClientTransactions(ctx, clientId)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return client, transactions, nil
 }

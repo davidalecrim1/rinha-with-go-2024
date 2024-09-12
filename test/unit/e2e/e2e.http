@@ -13,6 +13,37 @@ Content-Type: application/json
 }
 ### Expected 200
 
+POST http://localhost:9999/clientes/2/transacoes
+Content-Type: application/json
+
+{
+    "valor": 150,
+    "tipo" : "d",
+    "descricao" : "descricao"
+}
+### Expected 200 When Have Limit
+### Expected 422 When Have No Limit
+
+POST http://localhost:9999/clientes/2/transacoes
+Content-Type: application/json
+
+{
+    "valor": 20,
+    "tipo" : "c",
+    "descricao" : "descricao"
+}
+### Expected 200
+
+POST http://localhost:9999/clientes/2/transacoes
+Content-Type: application/json
+
+{
+    "valor": 85000,
+    "tipo" : "d",
+    "descricao" : "descricao"
+}
+### Expected 422 Because Have No Limit
+
 POST http://localhost:9999/clientes/1/transacoes
 Content-Type: application/json
 
@@ -32,5 +63,22 @@ Content-Type: application/json
     "tipo" : "d",
     "descricao" : "descricao"
 }
-### Expected 200 When Have Limit
-### Expected 422 When Have No Limit
+### Expected 404 Because Client Doesn't Exist
+
+
+GET http://localhost:9999/clientes/2/extrato
+Content-Type: application/json
+
+### Expected 200
+
+
+GET http://localhost:9999/clientes/10/extrato
+Content-Type: application/json
+
+### Expected 404
+
+
+GET http://localhost:9999/clientes/2/extrato
+Content-Type: application/json
+
+### Expected 404

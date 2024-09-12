@@ -70,6 +70,7 @@ func initializeRouter(h *handler.ClientHandler) {
 	})
 
 	r.POST("/clientes/:id/transacoes", h.CreateTransaction)
+	r.GET("/clientes/:id/extrato", h.GetStatement)
 
 	host := env.GetEnvOrSetDefault("HOST", "localhost")
 	port := env.GetEnvOrSetDefault("PORT", "9999")
