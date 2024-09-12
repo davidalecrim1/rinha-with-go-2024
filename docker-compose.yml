@@ -1,0 +1,90 @@
+services:
+  go-api-1:
+   <<: &api
+    container_name: go-rinha-2024-api-1
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - LOG_LEVEL=DEBUG # TODO: This is for local testing, change to INFO on the final image.
+      - PORT=80
+      - DB_HOST=postgres-db
+      - DB_USER=admin
+      - DB_PASSWORD=password
+      - DB_PORT=5432
+      - DB_SCHEMA=rinha
+      - DB_MAX_CONN=50
+      - GIN_MODE=debug # TODO: Change to release in final image.
+    depends_on:
+      - postgres-db
+    expose:
+      - 80
+    networks:
+      - default
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '0.2'
+    #       memory: '0.5GB'
+
+  nginx:
+    container_name: nginx
+    image: nginx:1.27.1-alpine
+    volumes:
+      - ./scripts/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - go-api-1
+    #  - go-api-2
+    ports:
+      - "9999:9999"
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '0.125'
+    #       memory: '0.5GB'
+    networks:
+      - default
+
+  postgres-db:
+    image: postgres:16.4-alpine3.20
+    container_name: postgres-rinha-2024
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: rinha
+    ports:
+    - "5432:5432"
+    volumes:
+    - ./scripts/postgres/:/docker-entrypoint-initdb.d/
+    - pgdata:/var/lib/postgresql/data # TODO: This is for local testing, remove on final image.
+    command:
+      ["postgres","-c","config_file=/docker-entrypoint-initdb.d/postgresql.conf"]
+    networks:
+      - default
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '0.850'
+    #       memory: '1.2GB'
+
+  pgadmin-ui: # TODO: This is to help monitor postgres on tests, remember to remove on the final image.
+    image: dpage/pgadmin4
+    container_name: pgadmin-ui
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "david.socer@hotmail.com"
+      PGADMIN_DEFAULT_PASSWORD: "5J4JgqSffm8f7rE"
+    ports:
+      - "16543:80"
+    volumes:
+      - pgadmin4-data:/var/lib/pgadmin
+    depends_on:
+      - postgres-db
+    networks:
+      - default
+volumes:
+  pgdata:
+  pgadmin4-data:
+
+networks:
+  default:
+    driver: bridge
