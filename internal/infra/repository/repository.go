@@ -14,41 +14,44 @@ import (
 type ClientRepository struct {
 	logger *slog.Logger
 	db     *pgxpool.Pool
-	tx     pgx.Tx
 }
 
-func NewClientRepository(logger *slog.Logger,
-	db *pgxpool.Pool,
-) *ClientRepository {
+func NewClientRepository(logger *slog.Logger, db *pgxpool.Pool) *ClientRepository {
 	return &ClientRepository{logger: logger, db: db}
 }
 
-// begin transaction
-// commit and rollbackas
-
-func (r *ClientRepository) Begin(ctx context.Context) error {
-	tx, err := r.db.Begin(ctx)
+func (r *ClientRepository) ExecuteTransaction(ctx context.Context, t *domain.Transaction) error {
+	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{
+		IsoLevel: pgx.ReadCommitted,
+	})
 	if err != nil {
+		r.logger.Debug("rolling back transaction",
+			"error", err,
+			"rollback status", tx.Rollback(ctx))
 		return err
 	}
-	r.tx = tx
-	return nil
+	if err := r.updateClientBalance(ctx, tx, t.ClientID, t.Kind, t.Amount); err != nil {
+		r.logger.Debug("rolling back transaction",
+			"error", err,
+			"rollback status", tx.Rollback(ctx))
+		return err
+	}
+	if err := r.createTransaction(ctx, tx, t); err != nil {
+		r.logger.Debug("rolling back transaction",
+			"error", err,
+			"rollback status", tx.Rollback(ctx))
+		return err
+	}
+
+	return tx.Commit(ctx)
 }
 
-func (r *ClientRepository) Commit(ctx context.Context) error {
-	return r.tx.Commit(ctx)
-}
-
-func (r *ClientRepository) Rollback(ctx context.Context) error {
-	return r.tx.Rollback(ctx)
-}
-
-func (r *ClientRepository) ExecuteTransaction(ctx context.Context, t *domain.Transaction) error {
+func (r *ClientRepository) createTransaction(ctx context.Context, tx pgx.Tx, t *domain.Transaction) error {
 	query := `
 	INSERT INTO transactions (clientId, amount, kind, description) 
 	VALUES ($1, $2, $3, $4);
 	`
-	_, err := r.tx.Exec(ctx, query, t.ClientID, t.Amount, t.Kind, t.Description)
+	_, err := tx.Exec(ctx, query, t.ClientID, t.Amount, t.Kind, t.Description)
 	if err != nil {
 		if pgErr, ok := err.(*pgconn.PgError); ok && pgErr.Code == "23503" {
 			return domain.ErrClientDoesntExist
@@ -58,22 +61,27 @@ func (r *ClientRepository) ExecuteTransaction(ctx context.Context, t *domain.Tra
 	return err
 }
 
-func (r *ClientRepository) UpdateClientBalance(ctx context.Context, clientID int, amount int) error {
-	err := r.getClientBalanceForUpdate(ctx, clientID)
-	if err != nil {
+func (r *ClientRepository) updateClientBalance(ctx context.Context, tx pgx.Tx, clientID int, kind string, amount uint) error {
+	query := `SELECT balance FROM clients WHERE id = $1 FOR UPDATE;`
+	row := tx.QueryRow(ctx, query, clientID)
+	var balance int
+	if err := row.Scan(&balance); err != nil {
 		return err
 	}
 
+	newBalance := r.calculateNewBalance(balance, kind, amount)
+
+	// TODO: Test remove this from the query and perform logic on app.
 	// This query ensures the balance is not updated if it
 	// will be below the client's limit (like a credit in the bank).
-	query := `
+	query = `
 	UPDATE clients
-	SET balance = balance + ($1),
+	SET balance = $1,
 		UpdatedAt = NOW()
 	WHERE id = $2
-	AND limitBalance + (balance + ($1)) > 0;
+	AND limitBalance + $1 > 0;
 	`
-	result, err := r.tx.Exec(ctx, query, amount, clientID)
+	result, err := tx.Exec(ctx, query, newBalance, clientID)
 	if err != nil {
 		return err
 	}
@@ -85,13 +93,12 @@ func (r *ClientRepository) UpdateClientBalance(ctx context.Context, clientID int
 	return nil
 }
 
-func (r *ClientRepository) getClientBalanceForUpdate(ctx context.Context, clientID int) error {
-	row := r.tx.QueryRow(ctx, `SELECT balance FROM clients WHERE id = $1 FOR UPDATE`, clientID)
-	var balance int
-	if err := row.Scan(&balance); err != nil {
-		return err
+func (r *ClientRepository) calculateNewBalance(balance int, kind string, amount uint) int {
+	if kind == "d" {
+		return balance - int(amount)
 	}
-	return nil
+
+	return balance + int(amount)
 }
 
 func (r *ClientRepository) GetClientBalance(ctx context.Context, clientID int) (*domain.Client, error) {

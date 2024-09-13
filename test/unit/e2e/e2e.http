@@ -38,7 +38,7 @@ POST http://localhost:9999/clientes/2/transacoes
 Content-Type: application/json
 
 {
-    "valor": 85000,
+    "valor": 100000000,
     "tipo" : "d",
     "descricao" : "descricao"
 }
@@ -48,7 +48,7 @@ POST http://localhost:9999/clientes/1/transacoes
 Content-Type: application/json
 
 {
-    "valor": 150,
+    "valor": 100000000,
     "tipo" : "d",
     "descricao" : "descricao"
 }
@@ -66,19 +66,14 @@ Content-Type: application/json
 ### Expected 404 Because Client Doesn't Exist
 
 
-GET http://localhost:9999/clientes/2/extrato
+GET http://localhost:9999/clientes/1/extrato
 Content-Type: application/json
-
 ### Expected 200
 
+GET http://localhost:9999/clientes/2/extrato
+Content-Type: application/json
+### Expected 200
 
 GET http://localhost:9999/clientes/10/extrato
 Content-Type: application/json
-
-### Expected 404
-
-
-GET http://localhost:9999/clientes/2/extrato
-Content-Type: application/json
-
 ### Expected 404

@@ -6,8 +6,10 @@ import (
 	"log"
 	"log/slog"
 	"strconv"
+	"time"
 
 	"rinha-with-go-2024/cmd/api/handler"
+	"rinha-with-go-2024/cmd/api/handler/middleware"
 	"rinha-with-go-2024/config/env"
 	"rinha-with-go-2024/internal/domain"
 	"rinha-with-go-2024/internal/infra/logger"
@@ -20,6 +22,7 @@ import (
 func main() {
 	logger := initializeLogger()
 	db := initializeDatabase()
+	monitorConnectionPool(logger, db)
 
 	repo := repository.NewClientRepository(logger, db)
 	svc := domain.NewClientRepository(logger, repo)
@@ -60,6 +63,31 @@ func initializeDatabase() *pgxpool.Pool {
 	return pool
 }
 
+func monitorConnectionPool(logger *slog.Logger, db *pgxpool.Pool) {
+	enabled := env.GetEnvOrSetDefault("MONITOR_CONN_POOL", "1")
+
+	if enabled != "1" {
+		return
+	}
+
+	monitor := func(d time.Duration) {
+		for {
+			stats := db.Stat()
+
+			logger.Debug("Database connection pool status",
+				"acquired", stats.AcquiredConns(),
+				"idle", stats.IdleConns(),
+				"total", stats.TotalConns(),
+				"max", stats.MaxConns(),
+			)
+
+			time.Sleep(d)
+		}
+	}
+
+	go monitor(time.Second * 10)
+}
+
 func initializeRouter(h *handler.ClientHandler) {
 	r := gin.Default()
 
@@ -72,8 +100,6 @@ func initializeRouter(h *handler.ClientHandler) {
 	r.POST("/clientes/:id/transacoes", h.CreateTransaction)
 	r.GET("/clientes/:id/extrato", h.GetStatement)
 
-	host := env.GetEnvOrSetDefault("HOST", "localhost")
-	port := env.GetEnvOrSetDefault("PORT", "9999")
-
-	r.Run(fmt.Sprintf("%s:%s", host, port))
+	r.Use(middleware.TimeoutMiddleware(time.Second * 30))
+	r.Run()
 }

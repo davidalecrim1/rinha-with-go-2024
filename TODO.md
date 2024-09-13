@@ -3,3 +3,6 @@
 
 **just to test:**
 - add sonic for JSON
+
+**solve issue:**
+* test wtihout serializable*

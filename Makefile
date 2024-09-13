@@ -2,8 +2,15 @@ lint:
 	golangci-lint run
 
 run-db:
-	docker compose down 
-	docker compose up --build -d postgres-db pgadmin-ui
+	docker compose -f docker-compose.local.yml down 
+	docker compose -f docker-compose.local.yml up --build -d postgres-db pgadmin-ui
 
-make local-run:
-	go run ./cmd/api/server.go
+run:
+	docker compose -f docker-compose.local.yml  up --build -d
+
+restart:
+	docker compose -f docker-compose.local.yml down
+	docker compose -f docker-compose.local.yml up --build -d
+
+stop:
+	docker compose -f docker-compose.local.yml down

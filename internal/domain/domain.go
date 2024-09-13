@@ -31,7 +31,7 @@ func NewClient(id int, limit int, balance int, updatedAt time.Time) *Client {
 type Transaction struct {
 	TransactionID int
 	ClientID      int
-	Amount        int
+	Amount        uint
 	Kind          string
 	Description   string
 	UpdatedAt     time.Time
@@ -39,7 +39,7 @@ type Transaction struct {
 
 func NewTransaction(
 	clientId int,
-	amount int,
+	amount uint,
 	kind string,
 	description string,
 ) (*Transaction, error) {
@@ -58,10 +58,6 @@ func NewTransaction(
 
 	if err := t.validDescription(); err != nil {
 		return nil, err
-	}
-
-	if kind == "d" {
-		t.Amount = -t.Amount
 	}
 
 	return t, nil
@@ -96,51 +92,19 @@ func NewClientRepository(logger *slog.Logger, repo ClientRepository) *ClientServ
 }
 
 type ClientRepository interface {
-	UpdateClientBalance(ctx context.Context, clientID int, transactionAmount int) error
 	ExecuteTransaction(ctx context.Context, t *Transaction) error
 	GetClientBalance(ctx context.Context, clientID int) (*Client, error)
-	Begin(ctx context.Context) error
-	Commit(ctx context.Context) error
-	Rollback(ctx context.Context) error
 	GetClientTransactions(ctx context.Context, clientID int) (*[]Transaction, error)
 }
 
 func (s *ClientService) CreateTransaction(ctx context.Context, t *Transaction) (*Client, error) {
-	var err error
-
-	defer func() {
-		if err != nil {
-			s.logger.Error("rolling back transaction because of error", "error", err)
-			s.repo.Rollback(ctx)
-		}
-	}()
-
-	if err := s.repo.Begin(ctx); err != nil {
-		s.logger.Error("failed to begin transaction", "error", err)
-		return nil, err
-	}
-
-	if err := s.repo.ExecuteTransaction(ctx, t); err != nil {
+	err := s.repo.ExecuteTransaction(ctx, t)
+	if err != nil {
 		s.logger.Error("failed to execute transaction", "error", err)
 		return nil, err
 	}
 
-	if err := s.repo.UpdateClientBalance(ctx, t.ClientID, t.Amount); err != nil {
-		s.logger.Error("failed to update client balance", "error", err)
-		return nil, err
-	}
-
-	if err := s.repo.Commit(ctx); err != nil {
-		s.logger.Error("failed to commit transaction", "error", err)
-		return nil, err
-	}
-
-	client, err := s.repo.GetClientBalance(ctx, t.ClientID)
-	if err != nil {
-		return nil, err
-	}
-
-	return client, nil
+	return s.repo.GetClientBalance(ctx, t.ClientID)
 }
 
 func (s *ClientService) GetStatement(ctx context.Context, clientId int) (*Client, *[]Transaction, error) {

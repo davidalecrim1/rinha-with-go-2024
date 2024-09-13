@@ -71,7 +71,7 @@ func (h *ClientHandler) CreateTransaction(c *gin.Context) {
 }
 
 type TransactionRequest struct {
-	Amount      int    `json:"valor"`
+	Amount      uint   `json:"valor"`
 	Kind        string `json:"tipo"`
 	Description string `json:"descricao"`
 }
@@ -137,7 +137,7 @@ type StatementBalanceResponse struct {
 }
 
 type TransactionStatementResponse struct {
-	Amount      int    `json:"valor"`
+	Amount      uint   `json:"valor"`
 	Kind        string `json:"tipo"`
 	Description string `json:"descricao"`
 	UpdatedAt   string `json:"realizada_em"`

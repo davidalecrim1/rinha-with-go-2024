@@ -146,3 +146,47 @@ func (h *ClientHandler) CreateTransaction(c *gin.Context) {
 ```
 
 In this example, if the client disconnects or the request times out, the context will be cancelled, and the service layer will know to stop processing. This happens independently for each request due to Go’s isolation through goroutines and request-specific contexts.
+
+## Error Scope with Transactions
+I was in a bug in this code where the rollback was never executed:
+```go
+	var err error
+
+	defer func() {
+        // 3. Know here, then exit because err was EQUALS nil.
+		if err != nil {
+			s.logger.Error("rolling back transaction because of error", "error", err)
+			err := s.repo.Rollback(ctx)
+			if err != nil {
+				s.logger.Error("failed to rollback transaction", "error", err)
+			}
+		}
+	}()
+
+    ...
+
+    // 1. This would raise an error
+	if err:= s.repo.UpdateClientBalance(ctx, t.ClientID, t.Amount); err != nil {
+        // 2. The runtime would enter here
+		s.logger.Error("failed to update client balance", "error", err)
+		return nil, err
+	}
+```
+
+This happened because `err` is scoped to the `if` statement. I can scope it in the function level by doing:
+```go
+	var err error
+
+    ...
+
+    err = s.repo.UpdateClientBalance(ctx, t.ClientID, t.Amount)
+	if err != nil {
+		s.logger.Error("failed to update client balance", "error", err)
+		return nil, err
+	}
+```
+
+Know the `err` has the error value and the defer function can perform the rollback.
+
+## Middlewares in API
+I didn't had a use case for middlewares until I wanted to timeout a context for every request, it was nice to know how it works.
