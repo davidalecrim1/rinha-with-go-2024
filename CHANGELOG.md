@@ -1,4 +1,4 @@
-## [v0.0.1] - 2024-09-06
+## [v0.0.1] - 2024-09-13
  
 ## Load Test
 - **output file:** rinhabackendcrebitossimulation-20240913101703340
@@ -13,3 +13,18 @@
 
 ### Fixed
 - Database consistency given it was causing `deadlock` or `hanging connection in the pool`.
+
+
+## [v0.0.2] - 2024-09-13
+ 
+## Load Test
+- **output file:**
+- **commit:**
+
+### Added
+- Script to calculate the results from rinha in my local machine.
+
+### Changed
+- Remove `Serialazable` from the Begin on the transaction.
+
+### Fixed
