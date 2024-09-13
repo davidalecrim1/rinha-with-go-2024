@@ -21,9 +21,7 @@ func NewClientRepository(logger *slog.Logger, db *pgxpool.Pool) *ClientRepositor
 }
 
 func (r *ClientRepository) ExecuteTransaction(ctx context.Context, t *domain.Transaction) error {
-	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{
-		IsoLevel: pgx.ReadCommitted,
-	})
+	tx, err := r.db.Begin(ctx)
 	if err != nil {
 		r.logger.Debug("rolling back transaction",
 			"error", err,
