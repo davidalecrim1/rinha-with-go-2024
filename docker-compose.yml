@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile
     environment:
-      - LOG_LEVEL=DEBUG # TODO: This is for local testing, change to INFO on the final image.
+      - LOG_LEVEL=INFO
       - PORT=80
       - DB_HOST=postgres-db
       - DB_USER=admin
@@ -14,18 +14,23 @@ services:
       - DB_PORT=5432
       - DB_SCHEMA=rinha
       - DB_MAX_CONN=50
-      - GIN_MODE=debug # TODO: Change to release in final image.
+      - GIN_MODE=release
     depends_on:
       - postgres-db
     expose:
       - 80
     networks:
       - default
+    deploy:
+      resources:
+        limits:
+          cpus: '0.3'
+          memory: '100MB'
   go-api-2:
     <<: *api
     container_name: go-rinha-2024-api-2
     environment:
-      - LOG_LEVEL=DEBUG # TODO: This is for local testing, change to INFO on the final image.
+      - LOG_LEVEL=INFO
       - PORT=80
       - DB_HOST=postgres-db
       - DB_USER=admin
@@ -33,7 +38,7 @@ services:
       - DB_PORT=5432
       - DB_SCHEMA=rinha
       - DB_MAX_CONN=50
-      - GIN_MODE=debug # TODO: Change to release in final image.
+      - GIN_MODE=release
   nginx:
     container_name: nginx
     image: nginx:1.27.1-alpine
@@ -44,6 +49,11 @@ services:
       - go-api-2
     ports:
       - "9999:9999"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: '100MB'
     networks:
       - default
   postgres-db:
@@ -61,6 +71,11 @@ services:
       ["postgres","-c","config_file=/docker-entrypoint-initdb.d/postgresql.conf"]
     networks:
       - default
+    deploy:
+      resources:
+        limits:
+          cpus: '0.7'
+          memory: '350MB'
   pgadmin-ui: # TODO: This is to help monitor postgres on tests, remember to remove on the final image.
     image: dpage/pgadmin4
     container_name: pgadmin-ui
