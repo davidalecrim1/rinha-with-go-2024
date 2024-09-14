@@ -2,7 +2,9 @@
 - how to ensure consistency over multiple updates (does postgres dhas a native feature or will i use a column with version)
 
 **just to test:**
-- add sonic for JSON
+- create a version iwht optimistic locking with version id in the table
 
-**solve issue:**
-* test without serializable*
+**backlog:**
+- unit tests for service layer
+- integration tests for repository
+- e2e tests on api

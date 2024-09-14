@@ -1,18 +1,20 @@
 # Programming
 
-## Concorrency Control
-In scenarios with concurrent updates in a database, the concept is called **optimistic concurrency control**, where you use a versioning mechanism (often a column like version_id) to ensure that changes are only applied if no other updates have occurred since the data was retrieved.
+Here’s a separation between **optimistic concurrency control** and **pessimistic concurrency control**, along with clear explanations of each:
 
-**PostgreSQL**, along with **pgxpool**, does support native features for handling concurrency, but adding a version column can still be useful in certain cases.
+## Concurrency Control
+In database systems where multiple users or processes may try to modify the same data concurrently, two common approaches are **optimistic concurrency control** and **pessimistic concurrency control**. Here's how each works:
 
-When handling concurrent updates in PostgreSQL using `pgxpool`, here are three options to ensure data consistency:
+### 1. **Optimistic Concurrency Control**
+In optimistic concurrency control, the system assumes that conflicts between concurrent updates are rare. Therefore, it allows multiple transactions to proceed without any locks, and only checks for conflicts when trying to commit the transaction. A common technique is to use versioning (e.g., a `version_id` column) to detect if any concurrent updates have occurred.
 
-#### 1. **Optimistic Concurrency Control (Version Column)**
+#### **Use Case:**
+- Suitable for systems where the likelihood of conflicts is low.
+- It avoids locking the data, improving performance in low-contention environments.
 
-Use a `version_id` column that increments with each update, ensuring no concurrent modifications conflict.
+#### Example with a Version Column:
 
 **SQL Example:**
-
 ```sql
 UPDATE clients
 SET balance = $1, version_id = version_id + 1
@@ -30,12 +32,20 @@ func (r *ClientRepository) UpdateBalance(ctx context.Context, clientID int, newB
     return err
 }
 ```
+In this example, the `version_id` ensures that updates are only applied if no other updates have occurred since the data was last read.
 
 ---
 
-#### 2. **Row-Level Locks (SELECT FOR UPDATE)**
+### 2. **Pessimistic Concurrency Control**
+In pessimistic concurrency control, the system assumes that conflicts are likely, so it locks the data to prevent other transactions from making changes. This ensures that only one transaction can modify the data at a time, thus preventing conflicts at the cost of reduced concurrency.
 
-Lock the rows when reading to prevent other transactions from modifying them until your transaction is done.
+#### **Use Case:**
+- Suitable for high-contention environments where multiple processes are likely to attempt updates to the same data simultaneously.
+- Ensures data integrity by using locks, but may result in slower performance due to blocking.
+
+#### 2.1 **Row-Level Locks (SELECT FOR UPDATE)**
+
+In this approach, you lock the rows when reading them using `SELECT ... FOR UPDATE`, preventing other transactions from modifying the locked rows until your transaction completes.
 
 **SQL Example:**
 ```sql
@@ -49,7 +59,7 @@ func (r *ClientRepository) UpdateBalanceWithLock(ctx context.Context, clientID, 
     if err != nil {
         return err
     }
-    defer tx.Rollback(ctx) // Rollback if commit is not called
+    defer tx.Rollback(ctx)
 
     row := tx.QueryRow(ctx, `SELECT balance FROM clients WHERE id = $1 FOR UPDATE`, clientID)
     var balance int
@@ -61,12 +71,12 @@ func (r *ClientRepository) UpdateBalanceWithLock(ctx context.Context, clientID, 
     return tx.Commit(ctx)
 }
 ```
+This locks the row during the transaction, preventing other transactions from modifying it until the lock is released.
 
 ---
 
-#### 3. **Serializable Transactions**
-
-Use the serializable isolation level to enforce strict transaction ordering, ensuring no concurrent conflicts.
+#### 2.2 **Serializable Transactions**
+Another form of pessimistic control is to use the `Serializable` isolation level, which makes transactions appear as if they were executed sequentially, one after the other. This is the strictest isolation level, ensuring no concurrent transaction conflicts.
 
 **Go Example:**
 ```go
@@ -77,11 +87,9 @@ func (r *ClientRepository) UpdateBalanceSerializable(ctx context.Context, client
     }
     defer tx.Rollback(ctx)
 
-    // Perform your read and write operations here
     row := tx.QueryRow(ctx, `SELECT balance FROM clients WHERE id = $1`, clientID)
     var balance int
-    err = row.Scan(&balance)
-    if err != nil {
+    if err := row.Scan(&balance); err != nil {
         return err
     }
 
@@ -89,8 +97,15 @@ func (r *ClientRepository) UpdateBalanceSerializable(ctx context.Context, client
     return tx.Commit(ctx)
 }
 ```
+This ensures that your transaction will either run without any conflicts or will be retried if a conflict is detected.
 
-These options help handle concurrency issues when multiple requests update the same data, ensuring data integrity in PostgreSQL.
+---
+
+### Conclusion:
+- **Optimistic Concurrency Control** is useful in low-contention environments, where the cost of handling occasional conflicts is less than the overhead of locking.
+- **Pessimistic Concurrency Control** is better in high-contention environments where conflicts are more likely, and preventing them with locks or serializable transactions ensures data consistency at the cost of concurrency.
+
+Both approaches help handle concurrency issues, but the right choice depends on the specifics of your system and its contention level.
 
 ## Framework and Context
 Go differentiates between concurrent requests by leveraging **goroutines** and the way **`context.Context`** is designed to propagate cancellation signals, deadlines, and other request-specific values. Here's how it works in detail:
