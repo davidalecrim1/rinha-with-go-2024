@@ -10,4 +10,5 @@
 | David Alecrim | USD 0.0 | USD 0.0 | USD 0.0 | **USD 100000.0** | [link](user-files/results/rinhabackendcrebitossimulation-20240913010257605) |
 | David Alecrim | USD 0.0 | USD 0.0 | USD 0.0 | **USD 100000.0** | [link](user-files/results/rinhabackendcrebitossimulation-20240913101703340) |
 | David Alecrim | USD 0.0 | USD 0.0 | USD 0.0 | **USD 100000.0** | [link](user-files/results/rinhabackendcrebitossimulation-20240913103142839) |
+| David Alecrim | USD 0.0 | USD 0.0 | USD 0.0 | **USD 100000.0** | [link](user-files/results/rinhabackendcrebitossimulation-20240914095732829) |
  
