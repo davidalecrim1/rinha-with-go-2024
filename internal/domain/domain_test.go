@@ -1,19 +1,18 @@
-package unit_test
+package domain
 
 import (
 	"errors"
-	"rinha-with-go-2024/internal/domain"
 	"testing"
 )
 
 func TestNewTransactionValid(t *testing.T) {
 	tests := []struct {
 		name  string
-		given domain.Transaction
+		given Transaction
 	}{
 		{
 			name: "valid credit transaction",
-			given: domain.Transaction{
+			given: Transaction{
 				ClientID:    10,
 				Amount:      1000,
 				Kind:        "c",
@@ -22,7 +21,7 @@ func TestNewTransactionValid(t *testing.T) {
 		},
 		{
 			name: "valid debit transaction",
-			given: domain.Transaction{
+			given: Transaction{
 				ClientID:    10,
 				Amount:      500,
 				Kind:        "d",
@@ -33,7 +32,7 @@ func TestNewTransactionValid(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := domain.NewTransaction(
+			_, err := NewTransaction(
 				tt.given.ClientID,
 				tt.given.Amount,
 				tt.given.Kind,
@@ -47,34 +46,34 @@ func TestNewTransactionValid(t *testing.T) {
 func TestNewTransactionInvalid(t *testing.T) {
 	tests := []struct {
 		name        string
-		given       domain.Transaction
+		given       Transaction
 		expectedErr error
 	}{
 		{
 			name: "invalid transaction description",
-			given: domain.Transaction{
+			given: Transaction{
 				ClientID:    10,
 				Amount:      1000,
 				Kind:        "c",
 				Description: "description greater then 10 characters",
 			},
-			expectedErr: domain.ErrInvalidTransaction,
+			expectedErr: ErrInvalidTransaction,
 		},
 		{
 			name: "invalid transaction kind",
-			given: domain.Transaction{
+			given: Transaction{
 				ClientID:    10,
 				Amount:      1000,
 				Kind:        "invalid kind",
 				Description: "descrip",
 			},
-			expectedErr: domain.ErrInvalidTransaction,
+			expectedErr: ErrInvalidTransaction,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := domain.NewTransaction(
+			_, err := NewTransaction(
 				tt.given.ClientID,
 				tt.given.Amount,
 				tt.given.Kind,
