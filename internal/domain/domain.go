@@ -50,8 +50,6 @@ func NewTransaction(
 		Description: description,
 	}
 
-	// TODO: Do i need to check if amount is 0?
-
 	if err := t.validKind(); err != nil {
 		return nil, err
 	}
