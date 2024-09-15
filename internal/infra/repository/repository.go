@@ -69,9 +69,9 @@ func (r *ClientRepository) updateClientBalance(ctx context.Context, tx pgx.Tx, c
 
 	newBalance := r.calculateNewBalance(balance, kind, amount)
 
-	// TODO: Test remove this from the query and perform logic on app.
 	// This query ensures the balance is not updated if it
 	// will be below the client's limit (like a credit in the bank).
+	// PS: This logic could be done in the app too.
 	query = `
 	UPDATE clients
 	SET balance = $1,

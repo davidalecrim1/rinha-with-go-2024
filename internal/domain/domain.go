@@ -22,9 +22,10 @@ type Client struct {
 
 func NewClient(id int, limit int, balance int, updatedAt time.Time) *Client {
 	return &Client{
-		ID:      id,
-		Limit:   limit,
-		Balance: balance,
+		ID:        id,
+		Limit:     limit,
+		Balance:   balance,
+		UpdatedAt: updatedAt,
 	}
 }
 

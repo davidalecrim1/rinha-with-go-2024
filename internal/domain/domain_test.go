@@ -1,11 +1,13 @@
 package domain
 
 import (
-	"errors"
 	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
-func TestNewTransactionValid(t *testing.T) {
+func TestTransaction_New_Valid(t *testing.T) {
 	tests := []struct {
 		name  string
 		given Transaction
@@ -38,12 +40,12 @@ func TestNewTransactionValid(t *testing.T) {
 				tt.given.Kind,
 				tt.given.Description)
 
-			assertNoError(t, err)
+			assert.NoError(t, err)
 		})
 	}
 }
 
-func TestNewTransactionInvalid(t *testing.T) {
+func TestTransaction_New_Invalid(t *testing.T) {
 	tests := []struct {
 		name        string
 		given       Transaction
@@ -79,33 +81,40 @@ func TestNewTransactionInvalid(t *testing.T) {
 				tt.given.Kind,
 				tt.given.Description)
 
-			assertError(t, tt.expectedErr, err)
+			assert.Error(t, tt.expectedErr, err)
 		})
 	}
 }
 
-func assertError(t *testing.T, expected, got error) {
-	t.Helper()
+func TestClient_New_Valid(t *testing.T) {
+	updatedAt := time.Now()
 
-	if expected == nil && got != nil {
-		t.Errorf("expected no error, but got: %v", got)
-		return
+	tests := []struct {
+		name  string
+		given Client
+	}{
+		{
+			name: "valid client",
+			given: Client{
+				ID:        1,
+				Limit:     1000,
+				Balance:   500,
+				UpdatedAt: updatedAt,
+			},
+		},
 	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			client := NewClient(
+				tt.given.ID,
+				tt.given.Limit,
+				tt.given.Balance,
+				tt.given.UpdatedAt)
 
-	if expected != nil && got == nil {
-		t.Errorf("expected error: %v, but got none", expected)
-		return
-	}
-
-	if !errors.Is(got, expected) {
-		t.Errorf("expected error %v, but got %v", expected, got)
-	}
-}
-
-func assertNoError(t *testing.T, err error) {
-	t.Helper()
-
-	if err != nil {
-		t.Errorf("unexpected error: %v", err)
+			assert.Equal(t, tt.given.ID, client.ID)
+			assert.Equal(t, tt.given.Limit, client.Limit)
+			assert.Equal(t, tt.given.Balance, client.Balance)
+			assert.Equal(t, tt.given.UpdatedAt, client.UpdatedAt)
+		})
 	}
 }

@@ -1,12 +1,17 @@
 lint:
 	golangci-lint run
 
-testing:
-	go test ./... -coverprofile=coverage.out -race
+unit-test:
+	go test ./... -coverprofile=./test/results/unit-test-coverage.out -race
 
-testing-view:
-	go tool cover -html=coverage.out
+integration-test:
+	go test -tags=integration ./... -coverprofile=./test/results/integration-test-coverage.out -race 
 
+view-unit-test-coverage:
+	go tool cover -html=./test/results/unit-test-coverage.out
+
+view-integration-test-coverage:
+	go tool cover -html=./test/results/integration-test-coverage.out
 
 local-run-db:
 	docker compose -f docker-compose.local.yml down 
