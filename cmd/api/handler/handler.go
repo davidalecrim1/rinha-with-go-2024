@@ -103,8 +103,8 @@ func (h *ClientHandler) GetStatement(c *gin.Context) {
 		return
 	}
 
-	transactionsResponse := make([]TransactionStatementResponse, 0, len(*transactions))
-	for _, t := range *transactions {
+	transactionsResponse := make([]TransactionStatementResponse, 0, len(transactions))
+	for _, t := range transactions {
 		transactionsResponse = append(transactionsResponse, TransactionStatementResponse{
 			Amount:      t.Amount,
 			Kind:        t.Kind,

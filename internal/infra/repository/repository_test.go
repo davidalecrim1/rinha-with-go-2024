@@ -199,9 +199,9 @@ func TestClientRepository_GetClientTransactions(t *testing.T) {
 
 		tt, err := repo.GetClientTransactions(context.Background(), clientId)
 		assert.NoError(t, err)
-		assert.Len(t, *tt, 10)
+		assert.Len(t, tt, 10)
 
-		for _, transc := range *tt {
+		for _, transc := range tt {
 			assert.Equal(t, transc.Kind, transaction.Kind)
 			assert.Equal(t, transc.Amount, transaction.Amount)
 			assert.Equal(t, transc.Description, transaction.Description)
@@ -215,7 +215,7 @@ func TestClientRepository_GetClientTransactions(t *testing.T) {
 
 		tt, err := repo.GetClientTransactions(context.Background(), clientId)
 		assert.NoError(t, err)
-		assert.Len(t, *tt, 0)
+		assert.Len(t, tt, 0)
 	})
 
 }

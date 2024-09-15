@@ -117,7 +117,7 @@ func (r *ClientRepository) GetClientBalance(ctx context.Context, clientID int) (
 	return client, nil
 }
 
-func (r *ClientRepository) GetClientTransactions(ctx context.Context, clientID int) (*[]domain.Transaction, error) {
+func (r *ClientRepository) GetClientTransactions(ctx context.Context, clientID int) ([]domain.Transaction, error) {
 	query := `
 	SELECT amount, kind, description, updatedat
 	FROM public.transactions
@@ -134,7 +134,7 @@ func (r *ClientRepository) GetClientTransactions(ctx context.Context, clientID i
 	return r.mapTransactions(rows)
 }
 
-func (r *ClientRepository) mapTransactions(rows pgx.Rows) (*[]domain.Transaction, error) {
+func (r *ClientRepository) mapTransactions(rows pgx.Rows) ([]domain.Transaction, error) {
 	var transactions []domain.Transaction
 	for rows.Next() {
 		var t domain.Transaction
@@ -146,5 +146,5 @@ func (r *ClientRepository) mapTransactions(rows pgx.Rows) (*[]domain.Transaction
 		transactions = append(transactions, t)
 	}
 
-	return &transactions, nil
+	return transactions, nil
 }

@@ -93,7 +93,7 @@ func NewClientRepository(logger *slog.Logger, repo ClientRepository) *ClientServ
 type ClientRepository interface {
 	ExecuteTransaction(ctx context.Context, t *Transaction) error
 	GetClientBalance(ctx context.Context, clientID int) (*Client, error)
-	GetClientTransactions(ctx context.Context, clientID int) (*[]Transaction, error)
+	GetClientTransactions(ctx context.Context, clientID int) ([]Transaction, error)
 }
 
 func (s *ClientService) CreateTransaction(ctx context.Context, t *Transaction) (*Client, error) {
@@ -106,7 +106,7 @@ func (s *ClientService) CreateTransaction(ctx context.Context, t *Transaction) (
 	return s.repo.GetClientBalance(ctx, t.ClientID)
 }
 
-func (s *ClientService) GetStatement(ctx context.Context, clientId int) (*Client, *[]Transaction, error) {
+func (s *ClientService) GetStatement(ctx context.Context, clientId int) (*Client, []Transaction, error) {
 	client, err := s.repo.GetClientBalance(ctx, clientId)
 	if err != nil {
 		return nil, nil, err
