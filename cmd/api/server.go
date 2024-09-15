@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"time"
 
-	"rinha-with-go-2024/cmd/api/handler"
-	"rinha-with-go-2024/cmd/api/handler/middleware"
+	"rinha-with-go-2024/cmd/api/middleware"
+	"rinha-with-go-2024/cmd/api/router"
 	"rinha-with-go-2024/config/env"
 	"rinha-with-go-2024/internal/domain"
 	"rinha-with-go-2024/internal/infra/logger"
@@ -26,9 +26,11 @@ func main() {
 
 	repo := repository.NewClientRepository(logger, db)
 	svc := domain.NewClientRepository(logger, repo)
-	handler := handler.NewClientHandler(logger, svc)
 
-	initializeRouter(handler)
+	r := gin.Default()
+	router.SetupRoutes(logger, r, svc)
+	r.Use(middleware.TimeoutMiddleware(time.Second * 30))
+	r.Run()
 }
 
 func initializeLogger() *slog.Logger {
@@ -86,20 +88,4 @@ func monitorConnectionPool(logger *slog.Logger, db *pgxpool.Pool) {
 	}
 
 	go monitor(time.Second * 10)
-}
-
-func initializeRouter(h *handler.ClientHandler) {
-	r := gin.Default()
-
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
-	})
-
-	r.POST("/clientes/:id/transacoes", h.CreateTransaction)
-	r.GET("/clientes/:id/extrato", h.GetStatement)
-
-	r.Use(middleware.TimeoutMiddleware(time.Second * 30))
-	r.Run()
 }
