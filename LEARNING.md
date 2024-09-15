@@ -205,3 +205,35 @@ Know the `err` has the error value and the defer function can perform the rollba
 
 ## Middlewares in API
 I didn't had a use case for middlewares until I wanted to timeout a context for every request, it was nice to know how it works.
+
+## Slices in Go
+Slices are already reference types, meaning they act like pointers internally. When passing a slice, you’re not copying the underlying data—just the slice header (pointer, length, capacity).
+
+Therefore:
+```go
+*[]domain.Transaction // This wouldn't make sense, but it works. I was using it.
+```
+
+But this could:
+```go
+[]*domain.Transaction // Nice option, but the structs are passed by value.
+```
+
+Finally, this is simplier and more readable:
+```go
+[]domain.Transaction // Generraly good. Pass the structs by value (wouldn't be great in large dataset).
+```
+
+Here’s the summary:
+
+[]domain.Transaction (Slice of Structs):
+- **Pros:** Simpler code, better memory locality (cache-friendly), no pointer dereferencing.
+- **Cons:** Higher memory usage if structs are large, copies entire structs.
+
+[]*domain.Transaction (Slice of Pointers):
+- **Pros:** Lower memory usage (only copying pointers), avoids unnecessary struct copies, better for large structs.
+- **Cons:** Requires pointer dereferencing, potential memory fragmentation, and more complex lifetime management.
+
+Recommendation:
+- Use []domain.Transaction if your structs are small and immutable.
+- Use []*domain.Transaction if your structs are large or need to be modified frequently.

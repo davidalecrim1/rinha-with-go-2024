@@ -56,3 +56,40 @@ Gatling:
 - Improve tests for later
 
 ### Fixed
+
+## [v0.0.3] - 2024-09-15
+ 
+## Load Test
+- **output file:** 
+- **commit:** 
+
+Gatling:
+```bash
+================================================================================
+---- Global Information --------------------------------------------------------
+> request count                                      61503 (OK=61503  KO=0     )
+> min response time                                      0 (OK=0      KO=-     )
+> max response time                                    225 (OK=225    KO=-     )
+> mean response time                                     3 (OK=3      KO=-     )
+> std deviation                                          6 (OK=6      KO=-     )
+> response time 50th percentile                          2 (OK=2      KO=-     )
+> response time 75th percentile                          3 (OK=3      KO=-     )
+> response time 95th percentile                          6 (OK=6      KO=-     )
+> response time 99th percentile                         14 (OK=14     KO=-     )
+> mean requests/sec                                250.012 (OK=250.012 KO=-     )
+---- Response Time Distribution ------------------------------------------------
+> t < 800 ms                                         61503 (100%)
+> 800 ms <= t < 1200 ms                                  0 (  0%)
+> t >= 1200 ms                                           0 (  0%)
+> failed                                                 0 (  0%)
+================================================================================
+```
+
+![Gatling Image Results](./v.0.0.3-gatling-result.png)
+
+### Added
+
+### Changed
+
+### Fixed
+- I thought it was better to stop using pointer to slice given slices are already a pointer to an array, and make the code simplier and more readable. [More of this here](./LEARNING.md#slices-in-go).
