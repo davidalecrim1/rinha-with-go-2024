@@ -60,8 +60,8 @@ Gatling:
 ## [v0.0.3] - 2024-09-15
  
 ## Load Test
-- **output file:** 
-- **commit:** 
+- **output file:** rinhabackendcrebitossimulation-20240915145643278
+- **commit:** d41fbe6b0975e4255ce9748bf5db9f2c8a294f62
 
 Gatling:
 ```bash
