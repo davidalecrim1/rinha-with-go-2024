@@ -181,7 +181,7 @@ I was in a bug in this code where the rollback was never executed:
     ...
 
     // 1. This would raise an error
-	if err:= s.repo.UpdateClientBalance(ctx, t.ClientID, t.Amount); err != nil {
+	if err := s.repo.UpdateClientBalance(ctx, t.ClientID, t.Amount); err != nil {
         // 2. The runtime would enter here
 		s.logger.Error("failed to update client balance", "error", err)
 		return nil, err
