@@ -1,6 +1,6 @@
 # Rinha de Backend with Go (Edition 2024/Q1)
 
-A high-performance REST API built with Go for the [Rinha de Backend 2024/Q1](https://github.com/zanfranceschi/rinha-de-backend-2024-q1) challenge - a competition focused on handling concurrent financial transactions with minimal resources (1.5 CPU cores and 550MB RAM).
+A high-performance REST API built with Go for the [Rinha de Backend 2024/Q1](https://github.com/zanfranceschi/rinha-de-backend-2024-q1) challenge - a competition focused on handling concurrent financial transactions with minimal resources (1.5 CPU cores and 550MB RAM) ensuring the consistency of balance for multiple uses.
 
 ## 🎯 Challenge Overview
 
@@ -40,24 +40,9 @@ This project demonstrates several concurrency patterns and safeguards:
   - Dependency injection
   - Middleware support
 
-## 🏗️ Project Structure
+## 🏗️ System Design
+![](./docs/system-design-rinha-2024.excalidraw.png)
 
-```
-├── cmd/
-│   └── api/
-│       ├── handler/    # HTTP request handlers
-│       ├── middleware/ # Timeout and concurrency controls
-│       ├── router/     # Route definitions
-│       └── server.go   # Application entry point
-├── internal/
-│   ├── domain/        # Business logic and entities
-│   └── infra/
-│       ├── logger/    # Logging configuration
-│       └── repository/# Concurrent data access layer
-└── scripts/
-    ├── nginx/         # Load balancer configuration
-    └── postgres/      # Database initialization
-```
 
 ## 🧪 Load Testing Results
 
